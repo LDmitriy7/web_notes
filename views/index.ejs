@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My notes</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+
+<label for="note-input"></label>
+<input id="note-input" type="text" placeholder="New note">
+<input id="save-note" type="button" value="Save">
+<div id="container"></div>
+
+<script>
+    function createNote(text, noteId) {
+        let note = document.createElement('div')
+        let noteContent = document.createElement('input')
+        let deleteNoteBtn = document.createElement('input')
+
+        note.className = 'note'
+
+        noteContent.type = 'text'
+        noteContent.disabled = true
+        noteContent.value = text
+
+        deleteNoteBtn.type = 'button'
+        deleteNoteBtn.value = 'Delete'
+        deleteNoteBtn.style.marginLeft = '4px'
+        deleteNoteBtn.onclick = () => {
+            window.fetch(`/delete-note?id=${noteId}`)
+            note.remove()
+        }
+
+        note.append(noteContent, deleteNoteBtn)
+        return note
+    }
+</script>
+
+<script>
+    let saveNoteBtn = document.querySelector('#save-note')
+    let noteInput = document.querySelector('#note-input')
+    let container = document.querySelector('#container')
+
+    saveNoteBtn.onclick = () => {
+        if (!noteInput.value) {
+            return
+        }
+        window.fetch(`/add-note?text=${noteInput.value}`).then((response) => {
+            return response.json()
+        }).then((data) => {
+            container.append(createNote(noteInput.value, data.id))
+            noteInput.value = ''
+        })
+    }
+</script>
+
+<script>
+    window.fetch('/notes').then((response) => {
+        return response.json()
+    }).then((data) => {
+        for (let noteId in data) {
+            container.append(createNote(data[noteId], noteId))
+        }
+    })
+</script>
+
+</body>
+</html>
